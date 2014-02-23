@@ -276,6 +276,22 @@ function getPhotoFolderList() {
                                         return { url:hrefAttr, name:textAttr}
                                     } else { return "";}
                                 }),
+                                replyList = DOM.find(".minihompy-comment tbody").map(function(idx,elem) {
+                                  return $(elem).find("tr td").not(":last")
+                                  .map(function(idx,reply) { 
+                                    var $reply = $(reply),
+                                      name = $reply.find(".sname01");
+                                      content = $reply.find(".comment-cont")
+
+
+                                    return { url:name.attr("href").match(/\('([^']+)'/)[1],
+                                          name:name.text(),
+                                          date:content.find(".date").text(),
+                                          content:content.find("span:first").text(),
+                                          isReply:$reply.hasClass("reply")
+                                          }  
+                                  })
+                                }),
                                 result = [];
                             
                             var imgURLList = DOM.find("img[name^=img_], object[name^=img_]>embed").eq(0).map(function(idx,e) { return e.src }),
@@ -297,7 +313,8 @@ function getPhotoFolderList() {
                                     time:timeList[i],
                                     imgURL:imgURLList[i],
                                     content:contentList[i],
-                                    scrap:scrapList[i]
+                                    scrap:scrapList[i],
+                                    replies:replyList[i]
                                 }
                             }
                             return result;
