@@ -2,7 +2,7 @@ var sys = require('system'),
     fs = require('fs'),
     page = require('webpage').create(),
     spawn = require("child_process").spawn,
-    url = "http://www.nate.com/cymain/",
+    url = "http://www.cyworld.com/cymain/",
     stepIndex = 0;
 
 var userId, userPw, userTid;
