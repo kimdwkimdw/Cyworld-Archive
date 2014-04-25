@@ -46,3 +46,7 @@
 
 게시판
 - 
+
+## Contact
+
+twitter의 @DongwooKim 이나 github issue로 연락주세요.
