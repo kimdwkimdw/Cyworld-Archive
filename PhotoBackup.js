@@ -27,8 +27,12 @@ function checkTargetAndStart(folder) {
     if (folder.id==target_id) {
         startTrue = true;
     } 
-    if (startTrue) 
+    if (startTrue) {
+        if (fs.isFile("./photo/"+folder.id+"/"+folder.id+"_info.json")) {
+            return;
+        }
         getFolderContent(folder);
+    }
 }
 
 
@@ -39,9 +43,9 @@ function getFolderContent(folder) {
     if (folder.id == target_id) {
         page_start = page_id;
     }
-    folder.page = 5;
+
     for (var page_i = page_start ; page_i <= folder.page;page_i++) {
-        console.log("folder id:", folder.id, "page:", page_i)
+        //console.log("folder id:", folder.id, "page:", page_i)
 
         var contentLoaded = false,
             pageResult = [],
@@ -49,7 +53,7 @@ function getFolderContent(folder) {
 
         // q와 worker를 동작시키고 parseHTML
         page.evaluate(function(urlHolder) { 
-            console.log("window.Q :", window.Q.length)
+            //console.log("window.Q :", window.Q.length)
             window.Q.push(urlHolder);
         },{ url: minihp_url,
             folder_id: folder.id,
@@ -57,7 +61,7 @@ function getFolderContent(folder) {
     }
 
     waitFor(function() {
-        console.log("waiting", folder.id);
+        //console.log("waiting", folder.id);
         for (var page_i = page_start ; page_i <= folder.page;page_i++) {
             var notLoaded = page.evaluate(function(key) {
             //    console.log("STORE", window.counter);
@@ -69,12 +73,11 @@ function getFolderContent(folder) {
         return true;
     }, function () { 
         console.log("waiting complete", folder.id);
-        //return false;
+        
+        var contentList = [];
         for (var page_i = page_start ; page_i <= folder.page;page_i++) {
-            console.log("page_i iteration", page_i);
             var pageResult = page.evaluate(function(key) {
                 function parseResult(rawHTML) {
-                    console.log("parseResult!!!!!!!!!!!!")
                     var result = ['error'];
                     try {
                         var DOM = $(rawHTML.match(/<body.+>([\r\n]|.)+<\/body>/)[0]),
@@ -148,16 +151,11 @@ function getFolderContent(folder) {
 
                     return result;
                 }
-                console.log("parseResult??");
-                console.log("my key", key);
-                for (var k in window.STORE) {
-                    console.log(k);
-                }
                 return parseResult(window.STORE[key]);
             }, (folder.id+'_'+page_i));
             for (var result_i=0;result_i<pageResult.length;result_i++) {
                 console.log(pageResult[result_i].imgURL);
-                console.log("./photo/"+folder.id+"/"+( ((page_i-1)*4) +result_i)+"_"+pageResult[result_i].imgURL.replace(/%2E/g,".").split("%2F").splice(-1)[0])
+                //console.log("./photo/"+folder.id+"/"+( ((page_i-1)*4) +result_i)+"_"+pageResult[result_i].imgURL.replace(/%2E/g,".").split("%2F").splice(-1)[0])
                 var child = spawn("wget", ["-O", "./photo/"+folder.id+"/"+( ((page_i-1)*4) +result_i)+"_"+pageResult[result_i].imgURL.replace(/%2E/g,".").split("%2F").splice(-1)[0],
                     '--header', 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\\r\\n',
                     '--header', 'User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.102 Safari/537.36\\r\\n',
@@ -165,11 +163,13 @@ function getFolderContent(folder) {
                     pageResult[result_i].imgURL])
                 }
 
-            //[].push.apply(contentList, pageResult);
-            var resultJSON = JSON.stringify(pageResult);
-            fs.write("./photo/"+folder.id+"/"+folder.id+"_info.json",resultJSON.substr(1,resultJSON.length-2)+",\n","w+");
+            [].push.apply(contentList, pageResult);
+            //var resultJSON = JSON.stringify(pageResult);
+            //fs.write("./photo/"+folder.id+"/"+folder.id+"_info.json",resultJSON.substr(1,resultJSON.length-2)+",\n","w+");
             // contentList에 append 하는 대신 결과파일에 append 하는 식으로 변경이 필요한 구조.
         }
+        var resultJSON = JSON.stringify(contentList);
+        fs.write("./photo/"+folder.id+"/"+folder.id+"_info.json",resultJSON.substr(1,resultJSON.length-2)+",\n","w+");
     }, undefined, -1);
     
 

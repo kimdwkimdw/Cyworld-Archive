@@ -176,7 +176,7 @@ function getPhotoFolderList() {
                 var photoFolderList = [];
                 var $folderListDOM = $('#folderList > dd,dt');
                 console.log('STATUS LOG : folder info loading start')
-                for (var i = 0; i < 3/*$folderListDOM.length*/; i++) { //TODO
+                for (var i = 0; i < $folderListDOM.length; i++) { //TODO
                     var $e = $folderListDOM.eq(i),
                         className = $e.attr('class');
                     if ( className=='' || className=='clear') continue; //case for '전체보기' or UI hack
